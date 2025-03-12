@@ -38,6 +38,17 @@
         
         <section id="report" class="project-report">
             <h2>Project Report</h2>
+            <h3>Design</h3>
+            <img src="state_diagram.png" alt="State Diagram">
+            <p>
+                The game starts at the start game state. Here you have a screen which prompts the user to press X to go to the controls or A to start the game. Once at controls you can press B to go back to the start. Once you press A you enter the main game state. Here the game either transitions to the mingame by shooting a purple cube that pops up or to the post game screen. That transition can happen from the user running out of power or running out of lives. From the end game screen you can either navigate to the start again by pressing A, or go to the leaderboard state by pressing X. The leaderboard state allows you to view the top 4 scores as well as enter your name and submit a score. If your score was high enough it will be immediately available on the leaderboard. From the leaderboard state you can then go back to the post game screen. 
+            </p>
+
+            <img src="hardware_diagram.png" alt="Hardware Diagram">
+            <p> 
+            The CC3200 is the center of the embedded system. The OLED connects to the Launchpad through SPI and the accelerometer connects with I2C similar to how these things were done in previous labs. In addition to this we connect the HM-10 bluetooth module to the CC3200 with UART. The HM-10 connects to a MacBook through Bluetooth Low Energy and the Xbox controller connects to the MacBook via bluetooth. A python script using pygame detects controller input and through this bluetooth connection the user input can be incorporated into the code written in CCS.
+            </p>
+            
             <h3>Challenges</h3>
             <p>
                 Implementation of the game itself went quite smoothly. With the help of some prior game development experience we were able to implement all the core gameplay mechanics without encountering too many difficulties. However, there was one significant challenge we encountered. The first iteration of the game implementation was utilizing interrupts to detect user input and this proved to be an ineffective strategy. The game was far too unresponsive with this implementation. Our solution was to refactor the code to track game state and in the main while loop continuously check what the most recent button input from the user was. Based on that input, we can change state in the main loop and avoid using interrupts altogether. This had a major improvement on game performance.
