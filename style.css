@@ -104,3 +104,7 @@ p {
     background-color: #f4f4f4;
     border-radius: 8px;
 }
+
+.project-report img {
+    width: 100%;
+}
