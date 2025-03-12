@@ -48,7 +48,7 @@
         <section class="project-report">
             <h2>Project Report</h2>
             
-            <h2>Challenges</h2>
+            <h3>Challenges</h3>
             <p>
                 Implementation of the game itself went quite smoothly. With the help of some prior game development experience we were able to implement all the core gameplay mechanics without encountering too many difficulties. However, there was one significant challenge we encountered. The first iteration of the game implementation was utilizing interrupts to detect user input and this proved to be an ineffective strategy. The game was far too unresponsive with this implementation. Our solution was to refactor the code to track game state and in the main while loop continuously check what the most recent button input from the user was. Based on that input, we can change state in the main loop and avoid using interrupts altogether. This had a major improvement on game performance.
             </p>
@@ -59,7 +59,7 @@
                 We had some challenges with integrating AWS in our project. In this case, AI tools proved to be incredibly useful as they helped throughout the debugging process and were capable of providing mostly working GET and POST functions as well as the lambda function we use to parse incoming commands to the DynamoDB table.
             </p>
             
-            <h2>Future Work</h2>
+            <h3>Future Work</h3>
             <p>
                 The major feature that we would have liked to implement is some form of EEG headset. Originally, we had intended to have a headset influence the strength of the player’s abilities and influence how power consumption happens during gameplay. The EEG headset we had access to was too old and cheap to provide reliable data that could be incorporated in a meaningful way. For some context, it assumed the user was brain dead around half of the time. Due to budget constraints, we could not purchase a headset of good enough quality to incorporate.
             </p>
@@ -67,7 +67,7 @@
                 Scaling difficulty as the player’s score increases is a reasonable thing to continue working on. There is a constraint with how fast the OLED can update the screen if too many pixels need to be changed. However, there could be unique kinds of enemies with varying speeds and health values that increase the game difficulty. In addition to this, game feel could be improved by experimenting with values through a series of play testing experiments. Reducing the amount of pixels the player, enemies, and bullet moves while simultaneously increasing the refresh rate of the screen improves game feel, but we pushed this as far as we could with the hardware we have access to.
             </p>
             
-            <h2>Bill of Materials</h2>
+            <h3>Bill of Materials</h3>
             <p>
                 <strong>FROM LAB (free):</strong><br>
                 - CC3200 Launchpad<br>
