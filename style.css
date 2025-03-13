@@ -114,14 +114,17 @@ p {
 
 .project-report ul {
     list-style-position: inside; 
-    padding-left: 0; /
+    padding-left: 0; 
+    text-align: left;
 }
 
 .project-report ul ul {
     padding-left: 20px; 
+    text-align: left;
 }
 
 .project-report li strong {
     display: block; 
     margin-top: 10px;
+    text-align: left;
 }
