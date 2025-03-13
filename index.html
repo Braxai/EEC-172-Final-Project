@@ -69,16 +69,19 @@
             <p><strong>Game Objects and Core Functions</strong></p>
             <p>
                 Structs are used to define the enemies, spawn locations, bullets, and the cubes. Enemy stores health, coordinates, and previous y for movement. Spawn locations are stored with x positions and an occupied value that can be used to ensure we don’t spawn multiple enemies in the same location. Bullets have a damage value, coordinates, and a previous y for movement. Cubes have coordinates and a color value. We have init functions for each of these structs where the necessary values can be passed in to initialize an object. We use arrays of these structs to store a certain amount of each object. There are 13 spawn locations, 10 enemies, 10 bullets, 1 power cube and 1 minigame cube. We can check if a particular object is inactive with a terminal condition such as an enemy having 0 health, or a bullet being at a particular y coordinate that indicates it is inactive. 
-
+            </p>
+            <p>
 Along with the init functions we have an update and draw function for each of these objects. Update will change the object’s values to match whatever conditions in the game have changed. Draw will erase an object at the old coordinates and draw it in the new coordinates. With this logic update should almost always be called at least once before draw is called again. Finally each struct has a reset function which sets all the objects back to initial conditions. 
             </p>
             
             <p><strong>SysTick</strong></p>
             <p>
                 SysTick plays a major role in this application as the fundamental timer the game operates around. We increased the frequency it ticks at to 10 ms which helps greatly with game feel. If the program is in gameState 0, meaning the player is playing the game, the score will be incremented by 1 with each tick. If the game is being played, either the main game or the minigame, SysCnt will be incremented. This variable is used to set important flags. We also need to check if we are in the minigame using a miniGameOver flag. If we are not in the minigame we want to spawn a mini game cube every time the score passes a multiple of 2000. Enemies will be spawned and moved every time SysCnt gets to 200 and then SysCnt will be reset to 0. This enables the enemies to move on a constant timer where the player can move more frequently then the enemy. We also want to set bullet and player move flags in case we are coming from a state where these things are inactive. 
-
+            </p>
+            <p>
 If the player is in the minigame whenever SysCnt gets to 200, or every 2 seconds, a flag is set that triggers the spawning of a red circle the player must avoid. If SysCnt gets to 1000 miniGameOver flag is set to 1 to end the game and the nukeCharge flag is set so the player can use the nuke once without consuming power. 
-
+            </p>
+            <p>
 The final purpose of SysTick is to decrease the player power. We have a usingPower flag that ensures power only decreases while the player is in the main game. If so power decrements by a small margin every tick and should power get to 0 or lower then gameState will be set to 1 to trigger the post game screen.
             </p>
             
@@ -160,9 +163,11 @@ The game runs in a while(1) loop, continuously checking for player input and upd
             </ul>
             <p>
                 Flags are utilized heavily to dynamically keep track of what the game is doing and what the player can do. The enemies, player, and bullets have move flags that determine when they should and shouldn’t be updated to a new position. 
-
+            </p>
+            <p>
 The player has three primary abilities. A default bullet can be shot at no power consumption and will travel in a straight line. Collision detection is done by checking all the y locations the bullet would travel through and if it collides with a power cube, mini game cube, or enemy that target is destroyed along with the bullet and the appropriate effects take place. A laser costs 10% power and destroys all enemies along a column. A nuke costs 75% power and destroys all enemies and cubes on the screen. 
-
+            </p>
+            <p>
 For any visual components there is a draw and update function. The update function will change any values associated with the object. For example, updating an enemy, bullet, or player will change the coordinates associated with that object. Then when the draw functions are called it will draw over the old position and draw the object in its new location. This enables a massive increase in performance by only updating and drawing the objects that need to be changed in each iteration of the loop. We can also through the use of SysTick allow the player to make several actions before the enemies move again. 
             </p>
             
