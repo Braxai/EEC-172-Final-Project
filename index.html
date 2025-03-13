@@ -40,12 +40,10 @@
              <h2>The Team</h2>
              <div class="contributors-list">
                  <div class="contributor">
-                     <img src="contributor1.jpg" alt="Contributor 1">
                      <h3>Ian O'Connell</h3>
                      <p>Fifth year computer science and engineering major.</p>
                  </div>
                  <div class="contributor">
-                     <img src="contributor2.jpg" alt="Contributor 2">
                      <h3>Austen Simms</h3>
                      <p>Fourth year electrical engineering major.</p>
                  </div>
@@ -65,6 +63,117 @@
             <img src="hardware_diagram.png" alt="Hardware Diagram">
             <p> 
             The CC3200 is the center of the embedded system. The OLED connects to the Launchpad through SPI and the accelerometer connects with I2C similar to how these things were done in previous labs. In addition to this we connect the HM-10 bluetooth module to the CC3200 with UART. The HM-10 connects to a MacBook through Bluetooth Low Energy and the Xbox controller connects to the MacBook via bluetooth. A python script using pygame detects controller input and through this bluetooth connection the user input can be incorporated into the code written in CCS.
+            </p>
+
+            <h3>Implementation</h3>
+            <p><strong>Game Objects and Core Functions</strong></p>
+            <p>
+                Structs are used to define the enemies, spawn locations, bullets, and the cubes. Enemy stores health, coordinates, and previous y for movement. Spawn locations are stored with x positions and an occupied value that can be used to ensure we don’t spawn multiple enemies in the same location. Bullets have a damage value, coordinates, and a previous y for movement. Cubes have coordinates and a color value. We have init functions for each of these structs where the necessary values can be passed in to initialize an object. We use arrays of these structs to store a certain amount of each object. There are 13 spawn locations, 10 enemies, 10 bullets, 1 power cube and 1 minigame cube. We can check if a particular object is inactive with a terminal condition such as an enemy having 0 health, or a bullet being at a particular y coordinate that indicates it is inactive. 
+
+Along with the init functions we have an update and draw function for each of these objects. Update will change the object’s values to match whatever conditions in the game have changed. Draw will erase an object at the old coordinates and draw it in the new coordinates. With this logic update should almost always be called at least once before draw is called again. Finally each struct has a reset function which sets all the objects back to initial conditions. 
+            </p>
+            
+            <p><strong>SysTick</strong></p>
+            <p>
+                SysTick plays a major role in this application as the fundamental timer the game operates around. We increased the frequency it ticks at to 10 ms which helps greatly with game feel. If the program is in gameState 0, meaning the player is playing the game, the score will be incremented by 1 with each tick. If the game is being played, either the main game or the minigame, SysCnt will be incremented. This variable is used to set important flags. We also need to check if we are in the minigame using a miniGameOver flag. If we are not in the minigame we want to spawn a mini game cube every time the score passes a multiple of 2000. Enemies will be spawned and moved every time SysCnt gets to 200 and then SysCnt will be reset to 0. This enables the enemies to move on a constant timer where the player can move more frequently then the enemy. We also want to set bullet and player move flags in case we are coming from a state where these things are inactive. 
+
+If the player is in the minigame whenever SysCnt gets to 200, or every 2 seconds, a flag is set that triggers the spawning of a red circle the player must avoid. If SysCnt gets to 1000 miniGameOver flag is set to 1 to end the game and the nukeCharge flag is set so the player can use the nuke once without consuming power. 
+
+The final purpose of SysTick is to decrease the player power. We have a usingPower flag that ensures power only decreases while the player is in the main game. If so power decrements by a small margin every tick and should power get to 0 or lower then gameState will be set to 1 to trigger the post game screen.
+            </p>
+            
+            <p><strong>Main Loop</strong></p>
+            <p>
+                Initialization sets up system peripherals, including SPI (for display), I2C (for controller input), and UART (for serial communication). Initialize the display using Adafruit_Init(). Connect to a network, sets the time, and establish a TLS connection. Configure UART for reading controller input. Enable the system timer (SysTick) for tracking game events. Once these things are done we enter the main game loop. 
+
+The game runs in a while(1) loop, continuously checking for player input and updating game elements based on the current gameState. There are 7 game states in total. -2 is the controls menu, -1 is the start menu, 0 means the user is playing the game, 1 is the post game screen, 2 means the user is in the mini game, 3 means they are in the leaderboard and finally 4 means the user is in the menu to submit their score to the leaderboard. All the respective states have a draw function that displays whatever UI is needed in that state. Real time player input is calculated by using getLatestUARTChar() to process the most recent player input. 
+            </p>
+            <ul>
+                <li><strong>Controls Screen (gameState = -2)</strong>
+                    <ul>
+                        <li>Displays control instructions.</li>
+                        <li>Pressing 'B' switches to the start screen.</li>
+                    </ul>
+                </li>
+                <li><strong>Start Screen (gameState = -1)</strong>
+                    <ul>
+                        <li>Shows the game start screen.</li>
+                        <li>Pressing 'A' starts the game.</li>
+                        <li>Pressing 'X' returns to the controls screen.</li>
+                    </ul>
+                </li>
+                <li><strong>Main Game (gameState = 0)</strong>
+                    <ul>
+                        <li>Handles player movement:
+                            <ul>
+                                <li>'L' for left, 'R' for right, '0' for stopping.</li>
+                            </ul>
+                        </li>
+                        <li>Handles actions:
+                            <ul>
+                                <li>'X' fires bullets.</li>
+                                <li>'B' triggers a nuke.</li>
+                                <li>'Y' fires laser.</li>
+                            </ul>
+                        </li>
+                        <li>Updates and draws:
+                            <ul>
+                                <li>Player movement.</li>
+                                <li>Bullets.</li>
+                                <li>Enemy waves.</li>
+                                <li>Power-ups and score.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Game Over (gameState = 1)</strong>
+                    <ul>
+                        <li>Calls <code>postGame()</code> to handle post-game logic.</li>
+                        <li>'A' returns to the start screen.</li>
+                        <li>'X' transitions to the leaderboard.</li>
+                    </ul>
+                </li>
+                <li><strong>Mini-Game (gameState = 2)</strong>
+                    <ul>
+                        <li>Uses I2C-based input from the CC3200 Launchpad accelerometer for movement.</li>
+                        <li>Calculates player movement using accelerometer offsets.</li>
+                        <li>Checks for collisions with randomly placed circles.</li>
+                        <li>Grants power-ups based on survival time. 5% power increase for every second survived and if they make it through the full 10 second minigame the player gets a free nuke charge.</li>
+                    </ul>
+                </li>
+                <li><strong>Leaderboard (gameState = 3)</strong>
+                    <ul>
+                        <li>Displays top four player IDs and scores.</li>
+                        <li>'B' returns to the game over screen.</li>
+                        <li>'X' transitions to score submission if needed.</li>
+                    </ul>
+                </li>
+                <li><strong>Score Submission (gameState = 4)</strong>
+                    <ul>
+                        <li>Allows score submission via a cursor.</li>
+                        <li>'L' and 'R' move the selection cursor.</li>
+                        <li>'A' confirms submission.</li>
+                        <li>'B' cancels and returns to the leaderboard.</li>
+                        <li>'X' submits the score and returns to the leaderboard.</li>
+                    </ul>
+                </li>
+            </ul>
+            <p>
+                Flags are utilized heavily to dynamically keep track of what the game is doing and what the player can do. The enemies, player, and bullets have move flags that determine when they should and shouldn’t be updated to a new position. 
+
+The player has three primary abilities. A default bullet can be shot at no power consumption and will travel in a straight line. Collision detection is done by checking all the y locations the bullet would travel through and if it collides with a power cube, mini game cube, or enemy that target is destroyed along with the bullet and the appropriate effects take place. A laser costs 10% power and destroys all enemies along a column. A nuke costs 75% power and destroys all enemies and cubes on the screen. 
+
+For any visual components there is a draw and update function. The update function will change any values associated with the object. For example, updating an enemy, bullet, or player will change the coordinates associated with that object. Then when the draw functions are called it will draw over the old position and draw the object in its new location. This enables a massive increase in performance by only updating and drawing the objects that need to be changed in each iteration of the loop. We can also through the use of SysTick allow the player to make several actions before the enemies move again. 
+            </p>
+            
+            <p><strong>AWS</strong></p>
+            <p>
+                We avoided using device shadows or things for our AWS implementation. Instead we have a DynamoDB table that stores playerIDs and scores. A lambda function defines what happens when POST and GET are called. GET will simply return the entire leaderboard which is constrained to only four playerIDs and scores because that is what cleanly fits on the OLED leaderboard display. POST will check if the score being submitted is greater than any scores in the table. If it is then the new playerID and score are added and the lowest score entry is removed from the table. This means the table only ever stores four values so we can avoid extensive parsing.
+            </p>
+            
+            <p><strong>Python Program</strong></p>
+            <p>
+
             </p>
             
             <h3>Challenges</h3>
